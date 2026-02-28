@@ -13,7 +13,9 @@ services:
 
   # Agent worker — scale to N replicas for parallel task processing
   agent-worker:
-    build: .
+    build:
+      context: .
+      dockerfile: agent/Dockerfile
     command: python -m agent.worker
     replicas: 3               # 3 workers consuming from the same queue
     env:
@@ -29,7 +31,9 @@ services:
 
   # Orchestrator — optional always-on API (alternatively run as CLI)
   orchestrator:
-    build: .
+    build:
+      context: .
+      dockerfile: orchestrator/Dockerfile
     command: python -m orchestrator.submit --help  # replace with API server if you add one
     env:
       OPENAI_API_KEY: $OPENAI_API_KEY

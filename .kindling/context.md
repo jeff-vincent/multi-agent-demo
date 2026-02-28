@@ -88,7 +88,7 @@ Source tarball → Kaniko (in runner sidecar) → `localhost:5001/<image>` → d
 
 **Languages detected:** Python
 
-**Dockerfiles found:** 1
+**Dockerfiles found:** 2
 
 **CI workflow:** `.github/workflows/dev-deploy.yml` (GitHub Actions)
 
