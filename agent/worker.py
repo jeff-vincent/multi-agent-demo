@@ -25,7 +25,7 @@ from typing import Any
 import redis
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
-from config import (
+from shared.config import (
     REDIS,
     QUEUE_KEY,
     RESULTS_CHANNEL,
@@ -34,7 +34,7 @@ from config import (
     QUEUE_BLOCK_TIMEOUT,
     AGENT,
 )
-from agent.context import ContextStore
+from shared.context import ContextStore
 from agent.agent import build_agent_executor, SYSTEM_PROMPT
 
 logging.basicConfig(

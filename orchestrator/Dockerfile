@@ -2,11 +2,14 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-COPY orchestrator/requirements.txt .
+# Install orchestrator dependencies
+COPY orchestrator/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY config.py .
-COPY agent/ agent/
+# Copy shared modules from repo root
+COPY shared/ shared/
+
+# Copy orchestrator service code
 COPY orchestrator/ orchestrator/
 
 CMD ["python", "-m", "orchestrator.submit", "--help"]

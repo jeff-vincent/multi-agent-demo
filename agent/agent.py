@@ -9,9 +9,9 @@ from langchain_openai import ChatOpenAI
 from langchain.agents import AgentExecutor, create_tool_calling_agent
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
-from config import AGENT
-from tools.search import search_tool
-from tools.calculator import calculator_tool
+from shared.config import AGENT
+from shared.search import search_tool
+from shared.calculator import calculator_tool
 
 # Register tools here — add your own as needed
 TOOLS = [

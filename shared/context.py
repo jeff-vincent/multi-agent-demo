@@ -32,7 +32,7 @@ from langchain_core.messages import (
 )
 from langchain_openai import ChatOpenAI
 
-from config import REDIS, CONTEXT_KEY_PREFIX, CONTEXT_TTL, AGENT
+from shared.config import REDIS, CONTEXT_KEY_PREFIX, CONTEXT_TTL, AGENT
 
 logger = logging.getLogger(__name__)
 

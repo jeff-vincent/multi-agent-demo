@@ -49,22 +49,19 @@ jobs:
         with:
           name: "${{ github.actor }}-orchestrator"
           image: "${{ env.REGISTRY }}/orchestrator:${{ env.TAG }}"
-          port: "80"
+          port: "8000"
           ingress-host: "${{ github.actor }}-orchestrator.localhost"
+          health-check-path: ""
           health-check-type: "none"
           labels: |
             app.kubernetes.io/part-of: multi-agent-demo
             app.kubernetes.io/component: orchestrator
             apps.example.com/github-username: ${{ github.actor }}
           env: |
-            - name: REDIS_HOST
-              value: "${{ github.actor }}-orchestrator-redis"
-            - name: REDIS_PORT
-              value: "6379"
             - name: OPENAI_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: openai-api-key
+                  name: kindling-secret-openai-api-key
                   key: OPENAI_API_KEY
           dependencies: |
             - type: redis
@@ -74,27 +71,25 @@ jobs:
         with:
           name: "${{ github.actor }}-agent"
           image: "${{ env.REGISTRY }}/agent:${{ env.TAG }}"
-          port: "80"
+          port: "8000"
           ingress-host: "${{ github.actor }}-agent.localhost"
+          health-check-path: ""
           health-check-type: "none"
           labels: |
             app.kubernetes.io/part-of: multi-agent-demo
             app.kubernetes.io/component: agent
             apps.example.com/github-username: ${{ github.actor }}
           env: |
-            - name: REDIS_HOST
-              value: "${{ github.actor }}-orchestrator-redis"
-            - name: REDIS_PORT
-              value: "6379"
             - name: OPENAI_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: openai-api-key
+                  name: kindling-secret-openai-api-key
                   key: OPENAI_API_KEY
+          dependencies: |
+            - type: redis
 
       - name: Summary
-        shell: bash
         run: |
           echo "🎉 Deploy complete!"
           echo "🧩 Orchestrator: http://${{ github.actor }}-orchestrator.localhost"
-          echo "🧑‍💻 Agent:        http://${{ github.actor }}-agent.localhost"
+          echo "🧠 Agent:        http://${{ github.actor }}-agent.localhost"

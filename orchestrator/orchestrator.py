@@ -17,8 +17,8 @@ import redis
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage, HumanMessage
 
-from config import REDIS, QUEUE_KEY, RESULTS_CHANNEL, RESULT_KEY_PREFIX, RESULT_TTL
-from agent.context import ContextStore, make_task_hash
+from shared.config import REDIS, QUEUE_KEY, RESULTS_CHANNEL, RESULT_KEY_PREFIX, RESULT_TTL
+from shared.context import ContextStore, make_task_hash
 
 logger = logging.getLogger(__name__)
 
