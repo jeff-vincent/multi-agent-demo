@@ -1,0 +1,40 @@
+# dev-deploy.yml
+# Kindling deployment manifest for the resumable agent cache system.
+# Run: kindling generate -k <api-key> -r .
+# Or use this directly: git push
+
+services:
+  # Redis — shared context store and queue
+  redis:
+    image: redis:7-alpine
+    dependency: true          # Kindling provisions this as managed infra
+    ports:
+      - 6379
+
+  # Agent worker — scale to N replicas for parallel task processing
+  agent-worker:
+    build: .
+    command: python -m agent.worker
+    replicas: 3               # 3 workers consuming from the same queue
+    env:
+      OPENAI_API_KEY: $OPENAI_API_KEY
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      AGENT_MODEL: gpt-4o
+      SUMMARY_MODEL: gpt-4o-mini
+      AGENT_MAX_ITERATIONS: "10"
+      AGENT_COMPRESS_STEPS: "5"
+    depends_on:
+      - redis
+
+  # Orchestrator — optional always-on API (alternatively run as CLI)
+  orchestrator:
+    build: .
+    command: python -m orchestrator.submit --help  # replace with API server if you add one
+    env:
+      OPENAI_API_KEY: $OPENAI_API_KEY
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+    depends_on:
+      - redis
+      - agent-worker

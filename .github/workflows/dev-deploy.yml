@@ -1,0 +1,66 @@
+name: Dev Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  REGISTRY: "registry:5000"
+  TAG: "${{ github.actor }}-${{ github.sha }}"
+
+jobs:
+  build-and-deploy:
+    runs-on: [self-hosted, "${{ github.actor }}"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Clean builds directory
+        shell: bash
+        run: |
+          rm -f /builds/*.done /builds/*.request /builds/*.processing \
+                /builds/*.apply /builds/*.apply-done /builds/*.apply-log \
+                /builds/*.apply-exitcode /builds/*.exitcode \
+                /builds/*.log /builds/*.dest /builds/*.tar.gz \
+                /builds/*.yaml /builds/*.sh
+
+      # -- Build all images --
+      - name: Build multi-agent-demo image
+        uses: kindling-sh/kindling/.github/actions/kindling-build@main
+        with:
+          name: multi-agent-demo
+          context: ${{ github.workspace }}
+          image: "${{ env.REGISTRY }}/multi-agent-demo:${{ env.TAG }}"
+
+      # -- Deploy in dependency order --
+      - name: Deploy multi-agent-demo
+        uses: kindling-sh/kindling/.github/actions/kindling-deploy@main
+        with:
+          name: "${{ github.actor }}-multi-agent-demo"
+          image: "${{ env.REGISTRY }}/multi-agent-demo:${{ env.TAG }}"
+          port: "8080"
+          ingress-host: "${{ github.actor }}-multi-agent-demo.localhost"
+          health-check-type: "none"
+          labels: |
+            app.kubernetes.io/part-of: multi-agent-demo
+            apps.example.com/github-username: ${{ github.actor }}
+          env: |
+            - name: REDIS_HOST
+              value: "${{ github.actor }}-multi-agent-demo-redis"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: openai-api-key
+                  key: OPENAI_API_KEY
+          dependencies: |
+            - type: redis
+
+      - name: Summary
+        run: |
+          echo "🎉 Deploy complete!"
+          echo "ℹ️  Service internal URL: ${{ github.actor }}-multi-agent-demo:8080"
