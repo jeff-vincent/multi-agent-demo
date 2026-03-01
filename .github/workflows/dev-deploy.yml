@@ -27,13 +27,6 @@ jobs:
                 /builds/*.yaml /builds/*.sh
 
       # -- Build all images --
-      - name: Build orchestrator image
-        uses: kindling-sh/kindling/.github/actions/kindling-build@main
-        with:
-          name: orchestrator
-          context: ${{ github.workspace }}
-          dockerfile: orchestrator/Dockerfile
-          image: "${{ env.REGISTRY }}/orchestrator:${{ env.TAG }}"
 
       - name: Build agent image
         uses: kindling-sh/kindling/.github/actions/kindling-build@main
@@ -43,28 +36,15 @@ jobs:
           dockerfile: agent/Dockerfile
           image: "${{ env.REGISTRY }}/agent:${{ env.TAG }}"
 
-      # -- Deploy in dependency order --
-      - name: Deploy orchestrator
-        uses: kindling-sh/kindling/.github/actions/kindling-deploy@main
+      - name: Build orchestrator image
+        uses: kindling-sh/kindling/.github/actions/kindling-build@main
         with:
-          name: "${{ github.actor }}-orchestrator"
+          name: orchestrator
+          context: ${{ github.workspace }}
+          dockerfile: orchestrator/Dockerfile
           image: "${{ env.REGISTRY }}/orchestrator:${{ env.TAG }}"
-          port: "8000"
-          ingress-host: "${{ github.actor }}-orchestrator.localhost"
-          health-check-path: ""
-          health-check-type: "none"
-          labels: |
-            app.kubernetes.io/part-of: multi-agent-demo
-            app.kubernetes.io/component: orchestrator
-            apps.example.com/github-username: ${{ github.actor }}
-          env: |
-            - name: OPENAI_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: kindling-secret-openai-api-key
-                  key: OPENAI_API_KEY
-          dependencies: |
-            - type: redis
+
+      # -- Deploy in dependency order --
 
       - name: Deploy agent
         uses: kindling-sh/kindling/.github/actions/kindling-deploy@main
@@ -73,7 +53,6 @@ jobs:
           image: "${{ env.REGISTRY }}/agent:${{ env.TAG }}"
           port: "8000"
           ingress-host: "${{ github.actor }}-agent.localhost"
-          health-check-path: ""
           health-check-type: "none"
           labels: |
             app.kubernetes.io/part-of: multi-agent-demo
@@ -85,11 +64,34 @@ jobs:
                 secretKeyRef:
                   name: kindling-secret-openai-api-key
                   key: OPENAI_API_KEY
+            - name: REDIS_HOST
+              value: "${{ github.actor }}-agent-redis"
+            - name: REDIS_PORT
+              value: "6379"
           dependencies: |
             - type: redis
 
-      - name: Summary
-        run: |
-          echo "🎉 Deploy complete!"
-          echo "🧩 Orchestrator: http://${{ github.actor }}-orchestrator.localhost"
-          echo "🧠 Agent:        http://${{ github.actor }}-agent.localhost"
+      - name: Deploy orchestrator
+        uses: kindling-sh/kindling/.github/actions/kindling-deploy@main
+        with:
+          name: "${{ github.actor }}-orchestrator"
+          image: "${{ env.REGISTRY }}/orchestrator:${{ env.TAG }}"
+          port: "8000"
+          ingress-host: "${{ github.actor }}-orchestrator.localhost"
+          health-check-type: "none"
+          labels: |
+            app.kubernetes.io/part-of: multi-agent-demo
+            app.kubernetes.io/component: orchestrator
+            apps.example.com/github-username: ${{ github.actor }}
+          env: |
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: kindling-secret-openai-api-key
+                  key: OPENAI_API_KEY
+            - name: REDIS_HOST
+              value: "${{ github.actor }}-orchestrator-redis"
+            - name: REDIS_PORT
+              value: "6379"
+          dependencies: |
+            - type: redis

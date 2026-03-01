@@ -94,7 +94,9 @@ Source tarball → Kaniko (in runner sidecar) → `localhost:5001/<image>` → d
 
 **Languages detected:** Python
 
-**CI workflow:** Not yet generated. Run `kindling generate` to create one.
+**Dockerfiles found:** 2
+
+**CI workflow:** `.github/workflows/dev-deploy.yml` (GitHub Actions)
 
 
 ## Kaniko Compatibility Notes
